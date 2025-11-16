@@ -51,7 +51,7 @@ def get_available_device(
                 )
             return device_obj, "cuda"
         elif device_lower == "mps":
-            if not torch.backends.mps.is_available():
+            if not hasattr(torch.backends, "mps") or not torch.backends.mps.is_available():
                 raise RuntimeError(
                     "MPS device requested but MPS is not available. "
                     "Please ensure you are running on Apple Silicon with PyTorch >= 2.0.0."
@@ -79,7 +79,7 @@ def get_available_device(
                 f"Using CUDA device: {torch.cuda.get_device_name(0)} "
                 f"({torch.cuda.device_count()} GPU(s) available)"
             )
-    elif torch.backends.mps.is_available():
+    elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
         device_obj = torch.device("mps")
         device_str = "mps"
         if verbose:
@@ -107,7 +107,7 @@ def get_device_string(device_index: Optional[int] = None) -> str:
         if device_index is not None:
             return f"cuda:{device_index}"
         return "cuda:0"
-    elif torch.backends.mps.is_available():
+    elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
         return "mps"
     else:
         return "cpu"
@@ -148,7 +148,7 @@ def log_device_info():
     else:
         logger.info(f"  CUDA available: False")
 
-    if torch.backends.mps.is_available():
+    if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
         logger.info(f"  MPS (Metal) available: True")
         logger.info("  Running on Apple Silicon (M-Series)")
     else:

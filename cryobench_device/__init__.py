@@ -1,4 +1,4 @@
-"""CryoBench utilities package."""
+"""CryoBench device utilities package for cross-platform GPU support."""
 
 from .device_utils import get_available_device, get_device_string, set_default_tensor_type, log_device_info
 

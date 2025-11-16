@@ -20,7 +20,7 @@ from cryodrgn import fft, models, mrc
 # Import device utilities for cross-platform GPU support
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
-from utils.device_utils import get_device_string
+from cryobench_device.device_utils import get_device_string
 
 logger = logging.getLogger(__name__)
 

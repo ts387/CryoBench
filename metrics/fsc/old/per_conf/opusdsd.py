@@ -32,7 +32,7 @@ from utils import volumes, conformations, interface
 
 # Import device utilities for cross-platform GPU support
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))))
-from utils.device_utils import get_available_device
+from cryobench_device.device_utils import get_available_device
 
 logger = logging.getLogger(__name__)
 

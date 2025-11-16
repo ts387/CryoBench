@@ -19,9 +19,9 @@ from cryodrgn import mrcfile
 from cryodrgn import lie_tools
 from cryodrgn import so3_grid
 
-# Add parent directory to path to import utils
+# Add parent directory to path to import device utilities
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils.device_utils import get_available_device
+from cryobench_device.device_utils import get_available_device
 
 import matplotlib
 
@@ -235,6 +235,9 @@ def main(args):
     if device_type != "cpu":
         projector.lattice = projector.lattice.to(device)
         projector.vol = projector.vol.to(device)
+        projector.center = projector.center.to(device)
+        if projector.tilt is not None:
+            projector.tilt = projector.tilt.to(device)
 
     if args.grid is not None:
         rots = GridRot(args.grid)
@@ -255,6 +258,9 @@ def main(args):
     iterator = data.DataLoader(rots, batch_size=args.b)
     for i, rot in enumerate(iterator):
         log("Projecting {}/{}".format((i + 1) * len(rot), args.N))
+        # Move rotation tensor to same device as projector for GPU acceleration
+        if device_type != "cpu":
+            rot = rot.to(device)
         projections = projector.project(rot)
         projections = projections.cpu().numpy()
         imgs.append(projections)

@@ -13,9 +13,9 @@ from cryodrgn.ctf import compute_ctf
 from cryodrgn import mrcfile
 import torch
 
-# Add parent directory to path to import utils
+# Add parent directory to path to import device utilities
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from utils.device_utils import get_available_device
+from cryobench_device.device_utils import get_available_device
 
 log = print
 
@@ -183,9 +183,10 @@ def compute_full_ctf(D, Nimg, args):
 
     freqs = np.arange(-D / 2, D / 2) / (args.Apix * D)
     x0, x1 = np.meshgrid(freqs, freqs)
-    freqs = torch.tensor(np.stack([x0.ravel(), x1.ravel()], axis=1)).to(_device)
+    # Explicitly use float32 for MPS compatibility (MPS has limited float64 support)
+    freqs = torch.tensor(np.stack([x0.ravel(), x1.ravel()], axis=1), dtype=torch.float32).to(_device)
     if args.ctf_pkl:  # todo: refator
-        params = torch.tensor(pickle.load(open(args.ctf_pkl, "rb"))).to(_device)
+        params = torch.tensor(pickle.load(open(args.ctf_pkl, "rb")), dtype=torch.float32).to(_device)
         assert len(params) == Nimg
         params = params[:, 2:]
         df = params[:, :2]
