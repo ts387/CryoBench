@@ -30,6 +30,10 @@ ROOTDIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file
 sys.path.append(os.path.join(ROOTDIR, "fsc"))
 from utils import volumes, conformations, interface
 
+# Import device utilities for cross-platform GPU support
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))))
+from utils.device_utils import get_available_device
+
 logger = logging.getLogger(__name__)
 
 
@@ -80,7 +84,17 @@ def main(args: argparse.Namespace) -> None:
     )
     out_zfile = os.path.join(args.outdir, "zfile.txt")
     logger.info(out_zfile)
-    cmd = f"CUDA_VISIBLE_DEVICES={args.cuda_device}; "
+
+    # Check available device for appropriate environment setup
+    device, device_type = get_available_device(verbose=False)
+    if device_type == "cuda":
+        # CUDA-specific environment variable
+        cmd = f"CUDA_VISIBLE_DEVICES={args.cuda_device}; "
+    else:
+        # MPS or CPU - no CUDA_VISIBLE_DEVICES needed
+        cmd = ""
+        logger.info(f"Using {device_type.upper()} device for OPUS-DSD evaluation")
+
     cmd += f"python {eval_vol_cmd} --load {weights_fl} -c {cfg_file} "
     cmd += f"--zfile {out_zfile} -o {voldir} --Apix {args.Apix}; "
 

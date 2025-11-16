@@ -24,6 +24,10 @@ sys.path.append(
 )
 from utils import volumes, conformations, interface
 
+# Import device utilities for cross-platform GPU support
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))))
+from utils.device_utils import get_device_string
+
 logger = logging.getLogger(__name__)
 
 
@@ -74,7 +78,9 @@ def main(args: argparse.Namespace) -> None:
                 if os.path.exists(gen_file) and not args.overwrite:
                     continue
 
-                ztensor = torch.tensor(zval, device=f"cuda:{args.cuda_device}")
+                # Use device-agnostic device string (supports CUDA, MPS, CPU)
+                device_str = get_device_string(args.cuda_device if torch.cuda.is_available() else None)
+                ztensor = torch.tensor(zval, device=device_str)
                 mrc.write(
                     gen_file, generator(ztensor).astype(np.float32), Apix=args.Apix
                 )

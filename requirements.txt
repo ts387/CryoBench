@@ -3,4 +3,6 @@ pandas<2
 matplotlib<3.7
 seaborn<0.12
 scikit-learn
-torch>1.0.0
+# PyTorch 2.0+ required for stable MPS (Metal) support on Apple Silicon
+# Use torch>=2.0.0 for MPS support, or torch>=1.0.0 for CUDA-only
+torch>=2.0.0

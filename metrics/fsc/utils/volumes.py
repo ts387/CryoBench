@@ -17,6 +17,11 @@ import pandas as pd
 import torch
 from cryodrgn import fft, models, mrc
 
+# Import device utilities for cross-platform GPU support
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+from utils.device_utils import get_device_string
+
 logger = logging.getLogger(__name__)
 
 
@@ -40,7 +45,10 @@ def get_volume_generator(
         cfg = yaml.safe_load(f)
 
     norm = [float(x) for x in cfg["dataset_args"]["norm"]]
-    model, lattice = models.HetOnlyVAE.load(cfg, checkpoint_path, device="cuda:0")
+    # Use device-agnostic device string (supports CUDA, MPS, CPU)
+    device_str = get_device_string()
+    logger.info(f"Loading cryoDRGN model on device: {device_str}")
+    model, lattice = models.HetOnlyVAE.load(cfg, checkpoint_path, device=device_str)
     model.eval()
 
     return lambda z: model.decoder.eval_volume(

@@ -13,7 +13,15 @@ from cryodrgn.ctf import compute_ctf
 from cryodrgn import mrcfile
 import torch
 
+# Add parent directory to path to import utils
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.device_utils import get_available_device
+
 log = print
+
+# Global device variable (set during main)
+_device = None
+_device_type = None
 
 
 def parse_args():
@@ -168,11 +176,16 @@ def add_noise(particles, D, sigma):
 
 
 def compute_full_ctf(D, Nimg, args):
+    global _device, _device_type
+    if _device is None:
+        _device, _device_type = get_available_device()
+        log("Using device: {} ({})".format(_device, _device_type))
+
     freqs = np.arange(-D / 2, D / 2) / (args.Apix * D)
     x0, x1 = np.meshgrid(freqs, freqs)
-    freqs = torch.tensor(np.stack([x0.ravel(), x1.ravel()], axis=1)).cuda()
+    freqs = torch.tensor(np.stack([x0.ravel(), x1.ravel()], axis=1)).to(_device)
     if args.ctf_pkl:  # todo: refator
-        params = torch.tensor(pickle.load(open(args.ctf_pkl, "rb"))).cuda()
+        params = torch.tensor(pickle.load(open(args.ctf_pkl, "rb"))).to(_device)
         assert len(params) == Nimg
         params = params[:, 2:]
         df = params[:, :2]

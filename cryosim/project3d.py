@@ -19,6 +19,10 @@ from cryodrgn import mrcfile
 from cryodrgn import lie_tools
 from cryodrgn import so3_grid
 
+# Add parent directory to path to import utils
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.device_utils import get_available_device
+
 import matplotlib
 
 matplotlib.use("Agg")
@@ -209,10 +213,9 @@ def main(args):
         np.random.seed(args.seed)
         torch.manual_seed(args.seed)
 
-    use_cuda = torch.cuda.is_available()
-    log("Use cuda {}".format(use_cuda))
-    if use_cuda:
-        torch.set_default_tensor_type(torch.cuda.FloatTensor)
+    # Device-agnostic GPU support (CUDA, MPS, or CPU)
+    device, device_type = get_available_device()
+    log("Using device: {} ({})".format(device, device_type))
 
     t1 = time.time()
     vol, _ = mrcfile.parse_mrc(args.mrc)
@@ -229,9 +232,9 @@ def main(args):
         ).astype(np.float32)
 
     projector = Projector(vol, args.tilt)
-    if use_cuda:
-        projector.lattice = projector.lattice.cuda()
-        projector.vol = projector.vol.cuda()
+    if device_type != "cpu":
+        projector.lattice = projector.lattice.to(device)
+        projector.vol = projector.vol.to(device)
 
     if args.grid is not None:
         rots = GridRot(args.grid)
